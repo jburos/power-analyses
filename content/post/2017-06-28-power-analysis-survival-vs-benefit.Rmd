@@ -11,11 +11,11 @@ tags: ['immunotherapy']
 
 There are many reasons to use survival analysis - personally I'm a fan of survival analysis (it's really elegant) so I'm inclined to see the benefits more than the limitations. But for some, the benefits are less than clear.
 
-Now, there are some scenarios where one is all but required to use a survival analysis. For example, if you have time-to-event data and a wide range of follow-up times, you will likely obtain [invalid inferences]() from an analysis method that failed to adjust for differential length of follow-up. Survival analysis is the primary means of adjusting for this. A logistic regression analysis using some cutpoint on follow-up time (e.g. at least 6 months event-free vs some event in first 6 months) would be inappropriate if some non-zero proportion of your data have a last follow-up time < 6 months.
+Granted, there are certain scenarios where one is all but required to use a survival analysis. For example, if you have time-to-event data and a wide range of follow-up times, you will likely obtain [invalid inferences]() from an analysis method that fails to adjust for this differential length of follow-up.
 
 Here, we are **not** discussing that scenario. Instead, we want to assume that we are analyzing, say, data from a randomized controlled trial (RCT) with a design intended to capture at least X days of followup for all patients enrolled, and that the incidence of intervening events is minimal (e.g. little-to-no adverse events necessitating change in treatment, etc).
 
-In this case, one presumably has a choice: What method to use?
+In this case, one presumably has a choice: which method to use?
 
 - use a survival-type analysis method, where time-to-event is a continuous outcome
 - or, to discretize the outcome according to some criteria (say, > X days event-free)
@@ -28,19 +28,19 @@ All other things being equal, what are the possible pros/cons of these two appro
 
 **There are other benefits to survival analysis (e.g. less sensitivity to mis-specification of the discretizing criteria), and other comments I could make regarding interpretability. But in this post I want to focus on the power-argument.**
 
-I'm focusing on this because I have most often seen binary outcomes used for the goal of biomarker discovery, and survival analysis used as a primary outcome for a RCT to evaluate drug effect on survival. In the case of biomarker discovery this strikes me as particularly egregious since biomarker discovery analyses tend to be [notoriously underpowered]() *[wish I had a reference for this]*, in part due to expense and difficulty of obtaining biomarker data.
+I'm focusing on this because I have most often seen binary outcomes used in service biomarker discovery. By comparison, it's common to use survival analysis to analyze primary results for a RCT. In the case of biomarker discovery this strikes me as particularly problematic since biomarker discovery analyses tend to be [notoriously underpowered]() *[wish I had a reference for this]*, in part due to the expense and difficulty of obtaining biomarker data. But, how much power is lost by using this method?
 
-In this post, I want to elaborate further on the power analysis question. Practically speaking, by how much is the statistical power reduced, if at all? And, under what conditions?
+This is the subject of this analysis. Practically speaking, by how much is the statistical power reduced, if at all, by dichotomizing the survival outcome? And, under what conditions?
 
 ## Background
 
-There are many relevant discussions on this topic far more knowledgeable than I am. 
+Quite a lot has been written about the shortcomings of dichotomization. Some selected examples:
 
-* See, for example, this [excellent discussion on Andrew Gelman's blog](http://andrewgelman.com/2015/11/25/gary-mcclelland-agrees-with-me-that-dichotomizing-continuous-variable-is-a-bad-idea-he-also-thinks-my-suggestion-of-dividing-a-variable-into-3-parts-is-also-a-mistake/) on his [Gelman and Park, 2008](http://www.stat.columbia.edu/~gelman/research/published/thirds5.pdf) publication discussing the limitations of using a split-at-the-median approach to discretizing of a continuous predictor. Notably, they report a bias introduced by use of a median-split, making a 3-way split preferable. But both methods of discretization lead to a substantial loss of statistical power. 
+* This [discussion on Andrew Gelman's blog](http://andrewgelman.com/2015/11/25/gary-mcclelland-agrees-with-me-that-dichotomizing-continuous-variable-is-a-bad-idea-he-also-thinks-my-suggestion-of-dividing-a-variable-into-3-parts-is-also-a-mistake/) regarding his earlier publication ([Gelman and Park, 2008](http://www.stat.columbia.edu/~gelman/research/published/thirds5.pdf)). This discussion concerns the limitations of using a split-at-the-median approach to discretizing of a continuous predictor. Notably, they report a bias introduced by use of a median-split, making a 3-way split preferable. But both methods of discretization lead to a substantial loss of statistical power. 
 
-* And,a companion [post on the same blog](http://andrewgelman.com/2014/02/26/econometrics-political-science-epidemiology-etc-dont-model-probability-discrete-outcome-model-underlying-continuous-variable/) discussing a similar question in the context of dependent variables, rather than predictors.
+* A related [post also on Andrew Gelman's blog](http://andrewgelman.com/2014/02/26/econometrics-political-science-epidemiology-etc-dont-model-probability-discrete-outcome-model-underlying-continuous-variable/) discussing a similar question in the context of dependent variables, rather than predictors.
 
-However, this is a discussion with a long history in Statistics and biostatistics in particular. Here is a select set of references:
+In addition, there is a long history of relevant publications in Statistics and biostatistics in particular. Among them, I would highlight a few:
 
 1. Jacob Cohen, "The Cost of Dichotomization," Applied Psychological Measurement, 1983, Vol. 7, No. 3, pp. 249-253. [https://doi.org/10.1177/014662168300700301](https://doi.org/10.1177/014662168300700301)
 
@@ -50,14 +50,14 @@ However, this is a discussion with a long history in Statistics and biostatistic
 
 Taken in concert, these references suggest the following:
 
-1. Discretizing a continuous predictor at the mean (under his example of analyzing assocation between two variables distributed in a bivariate normal fashion) has a similar effect on statistical power as _reducing the number of cases by 38%_. Discretizing both the predictor and the dependent variable is analogous to _reducing number of cases by 60%_ (Cohen, 1983).
-2. Discretizing a continuous dependent variable can similarly reduce statistical power (Ragland et al, 1992).
+1. Discretizing a continuous predictor at the mean has a similar effect on statistical power as _reducing the number of cases by 38%_, under the conditions detailed in that analysis. Discretizing both the predictor and the dependent variable is analogous to _reducing number of cases by 60%_ (Cohen, 1983).
+2. Discretizing a continuous dependent variable alone can similarly reduce statistical power (Ragland et al, 1992).
 3. Discretizing a continuous predictor at its median or mean can introduce _bias into the results_ (Chen et al, 2007; Gelman and Park, 2008).
-4. Furthermore, one should not use the parameter estimates (e.g. the estimated OR) to determine the ideal or optimal cutpoint, since this practice can increase the potential for biased effect sizes (Ragland et al, 1992; Chen et al, 2007).
+4. Furthermore, a number of these papers underscore the dangers of optimizing the threshold, either by cherry-picking results at different thresholds or using parameter estimates (e.g. the estimated OR) to determine the ideal or optimal cutpoint (Ragland et al, 1992; Chen et al, 2007).
 
 This deep body of knowledge developed by the statistical community forms the basis for most statistician's intuition that **discretizing otherwise continuous variable is bad practice**. 
 
-However, it is not clear in this case _how bad_ a practice this is.
+However, to my knowledge the net impact on power of using a logistic regression for "benefit" vs a survival analysis has not been reported. A clear description of this will go a long way to quantifying _how bad_ a practice this is.
 
 ## Analysis plan
 
